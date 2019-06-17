@@ -1,0 +1,64 @@
+<launch>
+
+    <arg name="model" default="$(find fourth_robot_description)/robots/fourth_robot.urdf.xacro"/>
+    <arg name="debug"           default="false" />
+    <arg name="gui"             default="true" />
+    <arg name="paused"          default="false" />
+    <arg name="use_sim_time"    default="true" />
+    <arg name="headless"        default="false" />
+
+    
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find fourth_robot_gazebo)/worlds/clearpath_playpen.world"/>   
+        <arg name="debug"           value="$(arg debug)" />
+        <arg name="gui"             value="$(arg gui)" />
+        <arg name="paused"          value="$(arg paused)" />
+        <arg name="use_sim_time"    value="$(arg use_sim_time)" />
+        <arg name="headless"        value="$(arg headless)" />
+    </include>
+
+    <include file="$(find fourth_robot_bringup)/launch/sensors/lrf_merger.launch"/>
+
+    <param name="robot_description" 
+           command="$(find xacro)/xacro.py --inorder '$(arg model)'" />
+
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+          args="-urdf -model fourth_robot -param robot_description"/>
+
+    <include file="$(find fourth_robot_control)/launch/fourth_robot_control.launch"/>
+
+
+    <param name="use_sim_time" value="true"/>
+    <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+      <remap from="scan" to="/front/scan"/>
+      <param name="map_update_interval" value="5.0"/>
+      <param name="maxUrange" value="50.0"/>
+      <param name="sigma" value="0.05"/>
+      <param name="kernelSize" value="1"/>
+      <param name="lstep" value="0.05"/>
+      <param name="astep" value="0.05"/>
+      <param name="iterations" value="5"/>
+      <param name="lsigma" value="0.075"/>
+      <param name="ogain" value="3.0"/>
+      <param name="lskip" value="0"/>
+      <param name="srr" value="0.1"/>
+      <param name="srt" value="0.2"/>
+      <param name="str" value="0.1"/>
+      <param name="stt" value="0.2"/>
+      <param name="linearUpdate" value="1.0"/>
+      <param name="angularUpdate" value="0.5"/>
+      <param name="temporalUpdate" value="3.0"/>
+      <param name="resampleThreshold" value="0.5"/>
+      <param name="particles" value="30"/>
+      <param name="xmin" value="-50.0"/>
+      <param name="ymin" value="-50.0"/>
+      <param name="xmax" value="50.0"/>
+      <param name="ymax" value="50.0"/>
+      <param name="delta" value="0.05"/>
+      <param name="llsamplerange" value="0.01"/>
+      <param name="llsamplestep" value="0.01"/>
+      <param name="lasamplerange" value="0.005"/>
+      <param name="lasamplestep" value="0.005"/>
+    </node>
+
+</launch>
